@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.db
+*.sqlite
+*.sqlite3
+knowledge_base.db
+
+# Output and large files
+Obsidian_Vault/
+docs/*.csv
+docs/*.pdf
+docs/*.docx
+scratch/
+
+# Environment files
+.env
+.env.local
