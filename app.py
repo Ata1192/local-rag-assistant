@@ -321,8 +321,18 @@ if "uploader_key" not in st.session_state:
 for filename in os.listdir("docs"):
     if filename.endswith(('.txt', '.md', '.pdf', '.docx', '.csv')) and filename not in st.session_state.ingested_files:
         with st.spinner(f"Yeni dosya tespit edildi, otomatik ekleniyor: {filename}"):
-            chunks_added = ingest_file(os.path.join("docs", filename), embedding_client=embedding_client)
+            # HIZLANDIRMA (YONTEM 1): VRAM'i devasa partiler (batch) icin bosalt!
+            manager = FoundryLocalManager.instance
+            chat_model = manager.catalog.get_model(st.session_state.chat_model_name)
+            try: chat_model.unload()
+            except Exception: pass
+            
+            chunks_added = ingest_file(os.path.join("docs", filename), embedding_client=None)
             st.session_state.ingested_files.add(filename)
+            
+            # CHAT MODELINI GERI YUKLE
+            try: chat_model.load()
+            except Exception: pass
 
 with st.sidebar:
     st.markdown("---")
@@ -381,8 +391,18 @@ with st.sidebar:
                 f.write(uploaded_file.getbuffer())
                 
             with st.spinner("Belge veritabanına ekleniyor..."):
+                # HIZLANDIRMA (YONTEM 1): VRAM'i bosalt ve koca GPU'yu Embedding modeline tahsis et!
+                manager = FoundryLocalManager.instance
+                chat_model = manager.catalog.get_model(st.session_state.chat_model_name)
+                try: chat_model.unload()
+                except Exception: pass
+                
                 # ingest_file fonksiyonunu çağırıp direkt embeddings oluştur (kendi yükleyip boşaltacak)
                 chunks_added = ingest_file(save_path, embedding_client=None)
+                
+                # CHAT MODELINI GERI YUKLE
+                try: chat_model.load()
+                except Exception: pass
                 if chunks_added > 0:
                     st.success(f"{uploaded_file.name} başarıyla eklendi! ({chunks_added} parça)")
                 else:

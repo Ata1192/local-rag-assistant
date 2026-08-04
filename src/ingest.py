@@ -223,10 +223,9 @@ def process_and_save_chunks(chunks, conn, embedding_client=None):
     # Sadece içerikleri liste olarak hazırlayalım ki topluca embed edebilelim
     texts_to_embed = [item["content"] for item in chunks]
     
-    # Foundry Local ile batchler (küçük paketler) halinde embed edelim ki RAM taşmasın
-    # NOT: 4GB VRAM ekran kartlarinda Chat Modeli ile ayni anda calisirken 
-    # VRAM'in sismemesi icin batch_size cok kucuk (5) tutulmalidir!
-    batch_size = 5
+    # Koca ekran karti tamamen (4GB) Embedding modeline kaldigi icin 
+    # paket boyutunu 5'ten 100'e cikariyoruz! Bu islem suresini devasa kisaltacak.
+    batch_size = 100
     for i in tqdm(range(0, len(texts_to_embed), batch_size), desc="Embeddings"):
         batch = texts_to_embed[i:i+batch_size]
         try:
