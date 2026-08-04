@@ -89,15 +89,19 @@ def get_relevant_context(query, top_k=2):
             embedding_model.select_variant(v)
             break
             
-    embedding_model.load()
+    if not embedding_model.is_loaded:
+        embedding_model.load()
+        
     embedding_client = embedding_model.get_embedding_client()
     
     # Soruyu vektöre çevir (Foundry SDK generate_embeddings list bekler)
     response = embedding_client.generate_embeddings([query])
     query_vector = response.data[0].embedding
     
-    # YENI MIMARI: KV Cache icin VRAM bosalt! Cok krtik!
-    embedding_model.unload()
+    # C++ ONNXRuntime çökmelerini (Connection error/silent crash) önlemek için 
+    # CPU varyantını HER SORUDA yükleyip silmekten vazgeçiyoruz! 
+    # İşlemci RAM'inde (System RAM) kalması GPU VRAM'i etkilemez. 
+    # Bu yüzden unload() fonksiyonunu sildik.
     
     # Veritabanında ara
     top_matches = search_database(query_vector, top_k=top_k)

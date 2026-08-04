@@ -203,6 +203,13 @@ def process_and_save_chunks(chunks, conn, embedding_client=None):
         # Embedding modelini al
         embedding_model = manager.catalog.get_model("qwen3-embedding-0.6b")
         
+        # Eger chat kisminda CPU'da acik kalmissa oncelikle temizliyoruz ki
+        # variant gecisinde C++ motoru cokmesin.
+        try:
+            embedding_model.unload()
+        except Exception:
+            pass
+        
         # KRTIIK DUZELTME: Retriever (Soru sorma) tarafinda modeli CPU'ya cekmistik.
         # Burada (Ingestion) ise VRAM bostur, bu yuzden inatla GPU varyantini secmeliyiz!
         for v in embedding_model.variants:
