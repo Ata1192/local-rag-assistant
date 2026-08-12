@@ -511,17 +511,6 @@ if user_query and user_query.strip():
     with st.chat_message("assistant"):
         with st.status("> Yapay zeka düşünüyor...", expanded=True) as status:
             st.write("> Veritabanında bağlam aranıyor...")
-            # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
-            # Artik dinamik VRAM mimarisi ile embedding CPU'da calistigi icin 
-            # GPU tamamen Chat modeline kaldi! VRAM bol, top_k'yi 6'ya cikariyoruz!
-            matches = get_relevant_context(user_query, top_k=6)
-            
-            # Bulunan metinleri birleştir
-            if matches:
-                context_text = "\n\n".join([f"[Kaynak: {m['source']}]\n{m['content']}" for m in matches])
-            else:
-                context_text = "Veritabanında ilgili hiçbir bilgi bulunamadı."
-                
             # Sohbet hafızasını al (Sadece son sıfırlamadan sonrakileri al, ve en fazla 3 tane)
             active_history = []
             for m in reversed(st.session_state.messages):
@@ -530,6 +519,27 @@ if user_query and user_query.strip():
                 active_history.insert(0, m)
                 
             recent_messages = active_history[-4:-1] if len(active_history) > 1 else []
+            
+            # SOHBET HAFIZASINI ARAMAYA (RETRIEVAL) DAHIL ET:
+            # Sadece mevcut soruyu degil, bir onceki soruyu da birlestirerek arama yaparsak
+            # baglam kopuklugunu (örn: "Peki onda kim oynuyor?" sorusundaki 'onda'nin ne oldugu) engelleriz.
+            search_query = user_query
+            if len(active_history) >= 3:
+                last_user_msg = active_history[-3]["content"]
+                # Cok uzunsa sadece basini al ki vektor kirlenmesin
+                last_user_msg = last_user_msg[:100]
+                search_query = f"{last_user_msg} | {user_query}"
+            
+            # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
+            # Artik dinamik VRAM mimarisi ile embedding CPU'da calistigi icin 
+            # GPU tamamen Chat modeline kaldi! VRAM bol, top_k'yi 6'ya cikariyoruz!
+            matches = get_relevant_context(search_query, top_k=6)
+            
+            # Bulunan metinleri birleştir
+            if matches:
+                context_text = "\n\n".join([f"[Kaynak: {m['source']}]\n{m['content']}" for m in matches])
+            else:
+                context_text = "Veritabanında ilgili hiçbir bilgi bulunamadı."
 
         # Adım B: Modele ne yapacağını söyleyen System Prompt oluştur
         system_prompt = f"""You are a strict RAG extraction assistant. You MUST answer the user's question using ONLY the provided CONTEXT.
