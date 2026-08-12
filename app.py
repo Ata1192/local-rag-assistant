@@ -511,9 +511,10 @@ if user_query and user_query.strip():
     with st.chat_message("assistant"):
         with st.status("> Yapay zeka düşünüyor...", expanded=True) as status:
             st.write("> Veritabanında bağlam aranıyor...")
-            # top_k=2 yapıldı: VRAM'i çok sınırlı olan (6GB) cihazlarda OOM riskini sıfırlamak için
-            # YENI MIMARI: Dinamik model yonetimi kullandigimiz icin embedding_client parametresini siliyoruz.
-            matches = get_relevant_context(user_query, top_k=2)
+            # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
+            # Artik dinamik VRAM mimarisi ile embedding CPU'da calistigi icin 
+            # GPU tamamen Chat modeline kaldi! VRAM bol, top_k'yi 6'ya cikariyoruz!
+            matches = get_relevant_context(user_query, top_k=6)
             
             # Bulunan metinleri birleştir
             if matches:
