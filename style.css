@@ -1,110 +1,159 @@
-/* Genel Animasyonlar ve Yazı Tipi */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Temel Ayarlar ve Font */
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
+    color: #e2e8f0 !important;
 }
 
-/* Chat Input Kutusu (Aşağıdaki Soru Sorma Yeri) */
+/* 1. ANA ARKA PLAN (Dinamik Gradient ve Desen) */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #2e1065, #020617);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
+    position: relative;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Noktalı Izgara (Grid Pattern) Overlay */
+[data-testid="stAppViewContainer"]::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Üst kısım ve dekoratif boşlukların saydamlaştırılması */
+[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+/* 2. SOL MENÜ (Sidebar) Glassmorphism */
+[data-testid="stSidebar"] {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.2) !important;
+}
+
+/* Sidebar İçeriği */
+[data-testid="stSidebarUserContent"] {
+    padding-top: 2rem !important;
+}
+
+/* Sidebar Butonları */
+[data-testid="stSidebar"] .stButton > button {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    color: #cbd5e1 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    justify-content: flex-start !important;
+    padding: 0.5rem 1rem !important;
+}
+
+[data-testid="stSidebar"] .stButton > button:hover {
+    transform: translateX(5px);
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* 3. SOHBET KUTUSU (Chat Input) Glassmorphism */
 [data-testid="stChatInput"] {
-    background: rgba(17, 24, 39, 0.7) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(79, 70, 229, 0.3) !important;
-    border-radius: 25px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     transition: all 0.3s ease;
 }
 
 [data-testid="stChatInput"]:focus-within {
-    border: 1px solid rgba(79, 70, 229, 0.8) !important;
-    box-shadow: 0 4px 25px rgba(79, 70, 229, 0.4) !important;
+    border: 1px solid rgba(129, 140, 248, 0.8) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
+    transform: translateY(-2px);
 }
 
-/* Chat Mesaj Balonları Genel */
+[data-testid="stChatInput"] textarea {
+    color: #f8fafc !important;
+}
+
+/* 4. SOHBET BALONCUKLARI */
 [data-testid="stChatMessage"] {
     background-color: transparent !important;
     padding: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-    animation: fadeIn 0.4s ease-out;
+    margin-bottom: 1rem !important;
+    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Mesaj İçeriği Kutusu (Baloncuk Efekti) */
+@keyframes slideUpFade {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
 [data-testid="stChatMessageContent"] {
-    background: #1e293b;
-    padding: 12px 18px !important;
-    border-radius: 0 15px 15px 15px;
-    border: 1px solid #334155;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0 16px 16px 16px;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    color: #f1f5f9 !important;
+    line-height: 1.6 !important;
 }
 
-/* Scrollbar (Kaydırma Çubuğu) Özelleştirme */
+/* 5. DİĞER ESTETİK DETAYLAR */
+/* Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #0b0f19;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #4f46e5;
+    background: rgba(99, 102, 241, 0.5);
 }
 
-/* Yükleme Animasyonu (Spinner) Rengi */
+/* Loading (Status) Kutusu */
+[data-testid="stStatusWidget"] {
+    background: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+/* Yükleme Çarkı (Spinner) */
 .stSpinner > div > div {
-    border-color: #4f46e5 !important;
+    border-color: #818cf8 !important;
     border-bottom-color: transparent !important;
 }
 
-/* Fade In Animasyonu */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Sol Menü (Sidebar) Butonları */
-[data-testid="stSidebar"] .stButton > button {
-    border-radius: 12px !important;
-    transition: all 0.2s ease !important;
-    border: 1px solid #334155 !important;
-    background: #1e293b !important;
-    justify-content: flex-start !important; /* İkon ve yazıyı sola hizala */
-}
-[data-testid="stSidebar"] .stButton > button:hover {
-    transform: translateX(4px);
-    border-color: #4f46e5 !important;
-    color: #818cf8 !important;
-}
-
-/* Chat mesajı altındaki ikon butonlar (Kopyala/Regenerate) */
+/* Buton ve Kopyalama İkonları */
 [data-testid="stChatMessage"] .stButton > button {
     background: transparent !important;
     border: none !important;
-    padding: 2px 8px !important;
-    margin-top: -10px !important;
     color: #64748b !important;
-    font-size: 1.1rem !important;
-    box-shadow: none !important;
-    transition: color 0.2s ease !important;
+    transition: all 0.2s ease !important;
 }
 [data-testid="stChatMessage"] .stButton > button:hover {
-    color: #cbd5e1 !important;
-    background: transparent !important;
-    border: none !important;
-}
-[data-testid="stChatMessage"] .stButton > button:active {
-    color: #fff !important;
-    background: transparent !important;
-}
-
-/* Toast notification'ın hızlıca yok olması */
-[data-testid="stToast"] {
-    animation: fadeOutToast 0.5s ease 1.5s forwards !important;
-}
-@keyframes fadeOutToast {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; visibility: hidden; transform: translateY(-10px); }
+    color: #a5b4fc !important;
+    transform: scale(1.1);
 }
