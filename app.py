@@ -23,7 +23,7 @@ from src.obsidian_exporter import export_to_obsidian
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Yerel RAG Asistanı",
-    page_icon=">",
+    page_icon="🤖",
     layout="centered"
 )
 
@@ -531,9 +531,10 @@ if user_query and user_query.strip():
                 search_query = f"{last_user_msg} | {user_query}"
             
             # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
-            # Artik dinamik VRAM mimarisi ile embedding CPU'da calistigi icin 
-            # GPU tamamen Chat modeline kaldi! VRAM bol, top_k'yi 6'ya cikariyoruz!
-            matches = get_relevant_context(search_query, top_k=6)
+            # Embedding CPU'da olsa da, Chat modelinin Context (İçerik) sınırı ve GPU KV Cache'i
+            # 6 metin + sohbet geçmişini aynı anda kaldırmayıp çökebiliyor (OOM). 
+            # Bu yüzden top_k'yi dengelemek adına 3'e düşürüyoruz.
+            matches = get_relevant_context(search_query, top_k=3)
             
             # Bulunan metinleri birleştir
             if matches:
