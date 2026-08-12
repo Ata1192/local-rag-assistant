@@ -84,15 +84,15 @@ def get_relevant_context(query, top_k=2):
         
     embedding_model = manager.catalog.get_model("qwen3-embedding-0.6b")
     
-    # KRTIIK OPTIMIZASYON: Soru sorma asamasinda (sadece 1 cumle cevrildigi icin) 
-    # GPU'yu Chat modeline (KV Cache) birakip, Embedding'i islemciye (CPU) yonlendiriyoruz!
-    # Bu sayede ne VRAM cakisir ne de modeller birbirini kilitler. CPU tek bir cumleyi 0.1 saniyede cevirir.
-    for v in embedding_model.variants:
-        if 'cpu' in v.id.lower():
-            embedding_model.select_variant(v)
-            break
-            
+    # Eger model halihazirda yukluyse bosuna tekrar yuklemeye veya varyant secmeye
+    # calisip C++ motorunda memory leak (Connection Error) yaratmayalim!
     if not embedding_model.is_loaded:
+        # KRTIIK OPTIMIZASYON: Soru sorma asamasinda GPU'yu Chat modeline (KV Cache) birakip,
+        # Embedding'i islemciye (CPU) yonlendiriyoruz!
+        for v in embedding_model.variants:
+            if 'cpu' in v.id.lower():
+                embedding_model.select_variant(v)
+                break
         embedding_model.load()
         
     embedding_client = embedding_model.get_embedding_client()
