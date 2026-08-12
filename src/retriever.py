@@ -18,6 +18,9 @@ DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'knowledge_base.db')
 
 def cosine_similarity(a, b):
     """İki vektör (sayı dizisi) arasındaki açıyı ölçerek benzerliği bulur."""
+    if not a or not b:
+        return 0.0
+        
     dot = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
@@ -96,6 +99,11 @@ def get_relevant_context(query, top_k=2):
     
     # Soruyu vektöre çevir (Foundry SDK generate_embeddings list bekler)
     response = embedding_client.generate_embeddings([query])
+    
+    if not response.data or not response.data[0].embedding:
+        print("[UYARI] Foundry SDK sorgu icin vektor uretmedi (Bos veya tanimsiz sorgu olabilir).")
+        return []
+        
     query_vector = response.data[0].embedding
     
     # C++ ONNXRuntime çökmelerini (Connection error/silent crash) önlemek için 
