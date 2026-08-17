@@ -356,27 +356,28 @@ with st.sidebar:
             webbrowser.open(obsidian_url)
                 
     st.markdown("---")
-    st.header("Model Ayarları")
+    st.header("Sohbetler")
     
-    # Sadece CUDA (GPU) destekli ve test edilmiş modeller
-    available_models = [
-        "ministral-3-3b-instruct-2512",
-        "smollm3-3b",
-        "qwen2.5-1.5b"
-    ]
-    
-    # Eğer mevcut model listede yoksa başa dön
-    current_index = available_models.index(st.session_state.chat_model_name) if st.session_state.chat_model_name in available_models else 0
-    
-    selected_model = st.selectbox(
-        "Kullanılacak Chat Modeli (Sadece GPU Destekliler)",
-        available_models,
-        index=current_index
-    )
-    
-    if selected_model != st.session_state.chat_model_name:
-        st.session_state.chat_model_name = selected_model
+    if st.button("+ Yeni Sohbet Aç", use_container_width=True):
+        new_id = create_new_chat()
+        st.session_state.current_chat_id = new_id
         st.rerun()
+        
+    for chat in all_chats:
+        col1, col2 = st.columns([0.80, 0.20])
+        with col1:
+            if chat["id"] == current_chat_id:
+                st.button(f"● {chat['title']}", key=f"btn_{chat['id']}", disabled=True, use_container_width=True)
+            else:
+                if st.button(f"○ {chat['title']}", key=f"btn_{chat['id']}", use_container_width=True):
+                    st.session_state.current_chat_id = chat["id"]
+                    st.rerun()
+        with col2:
+            with st.popover("×"):
+                st.write("Silinsin mi?")
+                if st.button("Evet", key=f"del_{chat['id']}"):
+                    delete_chat(chat['id'])
+                    st.rerun()
         
     st.markdown("---")
     st.header("Belge Yükle")
@@ -439,28 +440,27 @@ with st.sidebar:
                         st.rerun()
                 
     st.markdown("---")
-    st.header("Sohbetler")
+    st.header("Model Ayarları")
     
-    if st.button("+ Yeni Sohbet Aç", use_container_width=True):
-        new_id = create_new_chat()
-        st.session_state.current_chat_id = new_id
+    # Sadece CUDA (GPU) destekli ve test edilmiş modeller
+    available_models = [
+        "ministral-3-3b-instruct-2512",
+        "smollm3-3b",
+        "qwen2.5-1.5b"
+    ]
+    
+    # Eğer mevcut model listede yoksa başa dön
+    current_index = available_models.index(st.session_state.chat_model_name) if st.session_state.chat_model_name in available_models else 0
+    
+    selected_model = st.selectbox(
+        "Kullanılacak Chat Modeli (Sadece GPU Destekliler)",
+        available_models,
+        index=current_index
+    )
+    
+    if selected_model != st.session_state.chat_model_name:
+        st.session_state.chat_model_name = selected_model
         st.rerun()
-        
-    for chat in all_chats:
-        col1, col2 = st.columns([0.80, 0.20])
-        with col1:
-            if chat["id"] == current_chat_id:
-                st.button(f"● {chat['title']}", key=f"btn_{chat['id']}", disabled=True, use_container_width=True)
-            else:
-                if st.button(f"○ {chat['title']}", key=f"btn_{chat['id']}", use_container_width=True):
-                    st.session_state.current_chat_id = chat["id"]
-                    st.rerun()
-        with col2:
-            with st.popover("×"):
-                st.write("Silinsin mi?")
-                if st.button("Evet", key=f"del_{chat['id']}"):
-                    delete_chat(chat['id'])
-                    st.rerun()
                     
     st.markdown("---")
     st.header("Dışa Aktar")
