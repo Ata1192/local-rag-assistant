@@ -77,13 +77,19 @@ html, body, [class*="css"] {
 /* Sidebar İçeriği - Üstteki Boşluğu Kaldırma */
 [data-testid="stSidebarHeader"] {
     padding: 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    display: none !important;
+    height: 1rem !important;
+    min-height: 1rem !important;
+    background: transparent !important;
 }
 
 [data-testid="stSidebarUserContent"] {
     padding-top: 0rem !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 2rem) !important;
+}
+
+[data-testid="stSidebar"] {
+    overflow-y: hidden !important;
 }
 
 /* Sidebar Butonları */
