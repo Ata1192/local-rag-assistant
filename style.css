@@ -10,15 +10,14 @@ html, body, [class*="css"] {
 [data-testid="stAppViewContainer"] {
     background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
     position: relative;
-    overflow: hidden;
 }
 
 /* Bulutsu (Nebula) Efekti */
 [data-testid="stAppViewContainer"]::before {
     content: "";
-    position: absolute;
-    width: 200%; height: 200%;
-    top: -50%; left: -50%;
+    position: fixed;
+    width: 200vw; height: 200vh;
+    top: -50vh; left: -50vw;
     background: radial-gradient(circle at 50% 50%, rgba(76, 29, 149, 0.12), transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.15), transparent 40%),
                 radial-gradient(circle at 20% 80%, rgba(14, 116, 144, 0.1), transparent 50%);
@@ -35,9 +34,9 @@ html, body, [class*="css"] {
 /* Hareketli Yıldızlar Katmanı */
 [data-testid="stAppViewContainer"]::after {
     content: "";
-    position: absolute;
-    top: -100%; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 300%;
+    position: fixed;
+    top: -100vh; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 300vh;
     /* CSS ile minik yıldız noktaları oluşturuyoruz */
     background-image: 
         radial-gradient(1px 1px at 25px 30px, #ffffff, rgba(0,0,0,0)),
