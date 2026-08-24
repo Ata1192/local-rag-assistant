@@ -524,10 +524,9 @@ if user_query and user_query.strip():
             # Sadece mevcut soruyu degil, bir onceki soruyu da birlestirerek arama yaparsak
             # baglam kopuklugunu (örn: "Peki onda kim oynuyor?" sorusundaki 'onda'nin ne oldugu) engelleriz.
             search_query = user_query
-            if len(active_history) >= 3:
-                last_user_msg = active_history[-3]["content"]
-                # Cok uzunsa sadece basini al ki vektor kirlenmesin
-                last_user_msg = last_user_msg[:100]
+            past_user_msgs = [m["content"] for m in active_history[:-1] if m["role"] == "user"]
+            if past_user_msgs:
+                last_user_msg = past_user_msgs[-1][:100]
                 search_query = f"{last_user_msg} | {user_query}"
             
             # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
