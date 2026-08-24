@@ -559,13 +559,13 @@ if user_query and user_query.strip():
 
 CRITICAL RULES:
 1. NEVER use outside knowledge. Do not invent answers.
-2. If the exact answer is not found in the CONTEXT, you MUST reply with exactly: "Bu konuda bilgi tabanımda bir bilgi bulunmuyor."
+2. If the exact answer is not found in the CONTEXT, you MUST reply with exactly: "[BİLGİ YOK]"
 3. Answer in the same language as the user's question (e.g. if the user asks in Turkish, answer in Turkish).
 
 EXAMPLE:
 Context: The sky is blue.
 User: What color is the grass?
-Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
+Assistant: [BİLGİ YOK]
 
 --- CONTEXT START ---
 {context_text}
@@ -580,7 +580,7 @@ Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
                 safe_content = msg['content'][:400] + "...(truncated)" if len(msg['content']) > 400 else msg['content']
                 user_prompt_with_history += f"{role}: {safe_content}\n"
         
-        user_prompt_with_history += f"\n--- NEW QUESTION ---\nUser: {user_query}\n\nCRITICAL REMINDER: You MUST NOT use outside knowledge or general definitions. If the exact answer is not in the CONTEXT above, output exactly: 'Bu konuda bilgi tabanımda bir bilgi bulunmuyor.'"
+        user_prompt_with_history += f"\n--- NEW QUESTION ---\nUser: {user_query}\n\nCRITICAL REMINDER: You MUST NOT use outside knowledge or general definitions. If the exact answer is not in the CONTEXT above, output exactly: '[BİLGİ YOK]'"""
 
         # Tüm kuralları ve bağlamı TEK BİR KULLANICI MESAJI (user role) olarak birleştir.
         # Küçük yerel modeller (Qwen 1.5B vb.) "system" rolünü desteklemediği için görmezden gelebilir.
@@ -612,7 +612,7 @@ Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
         status.update(label="Yanıt tamamlandı!", state="complete", expanded=False)
         
         # Cevabın altına kaynakları göster (Kullanıcı hangi belgeden geldiğini görsün)
-        if matches and "bilgi bulunmuyor" not in full_response.lower():
+        if matches and "[BİLGİ YOK]" not in full_response:
             # Küçük modeller metin içinde kaynak ismi vermeyi beceremediği için,
             # aramada bulduğumuz tüm kaynakları doğrudan UI'da gösteriyoruz.
             used_sources = matches
