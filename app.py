@@ -561,10 +561,9 @@ CRITICAL RULES:
 1. NEVER use outside knowledge. Do not invent answers.
 2. If the exact answer is not found in the CONTEXT, you MUST reply with exactly: "Bu konuda bilgi tabanımda bir bilgi bulunmuyor."
 3. Answer in the same language as the user's question (e.g. if the user asks in Turkish, answer in Turkish).
-4. ONLY append the source file name [Kaynak: filename] IF you actually found the answer. DO NOT append it if you are replying with the "bilgi bulunmuyor" fallback.
 
 EXAMPLE:
-Context: The sky is blue. [Kaynak: sky.txt]
+Context: The sky is blue.
 User: What color is the grass?
 Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
 
@@ -613,9 +612,10 @@ Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
         status.update(label="Yanıt tamamlandı!", state="complete", expanded=False)
         
         # Cevabın altına kaynakları göster (Kullanıcı hangi belgeden geldiğini görsün)
-        if matches:
-            # Sadece modelin cevabında adı geçen kaynakları göster (Gelişmiş Atıf)
-            used_sources = [m for m in matches if m['source'] in full_response]
+        if matches and "bilgi bulunmuyor" not in full_response.lower():
+            # Küçük modeller metin içinde kaynak ismi vermeyi beceremediği için,
+            # aramada bulduğumuz tüm kaynakları doğrudan UI'da gösteriyoruz.
+            used_sources = matches
             
             if used_sources:
                 # Aynı dosyadan gelen farklı parçaları (chunk'ları) grupla
