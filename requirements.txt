@@ -1,0 +1,6 @@
+streamlit
+foundry-local-sdk
+PyPDF2
+python-docx
+tqdm
+pandas

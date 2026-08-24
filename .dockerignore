@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+.git/
+.gitignore
+knowledge_base.db
+knowledge_base.db-journal
+docs/*
+!docs/.gitkeep
+.idea/
+.vscode/

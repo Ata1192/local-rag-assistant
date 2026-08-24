@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  local-rag:
+    build: .
+    container_name: local_rag_assistant
+    ports:
+      - "8501:8501"
+    volumes:
+      # Veritabanını konteyner silinse bile korumak için host'a bağlıyoruz
+      - ./knowledge_base.db:/app/knowledge_base.db
+      - ./docs:/app/docs
+      # İndirilen yapay zeka modelleri silinmesin diye cache klasörünü de bağlıyoruz (Foundry Default Path)
+      - ~/.cache/foundry:/root/.cache/foundry
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
