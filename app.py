@@ -101,7 +101,7 @@ def init_models(embedding_model_name: str, chat_model_name: str):
 # Modelleri yüklüyoruz (ilk açılışta 5-10 saniye sürer, sonraki sorgularda anında)
 with st.spinner("Modeller yükleniyor, lütfen bekleyin... (Sadece ilk açılışta)"):
     if "chat_model_name" not in st.session_state:
-        st.session_state.chat_model_name = "qwen2.5-1.5b"
+        st.session_state.chat_model_name = "ministral-3-3b-instruct-2512"
     chat_client = init_models("qwen3-embedding-0.6b", st.session_state.chat_model_name)
 
 # ─────────────────────────────────────────────────────────────────────────────
