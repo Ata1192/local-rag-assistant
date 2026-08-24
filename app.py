@@ -545,8 +545,8 @@ if user_query and user_query.strip():
             # Eskiden VRAM cöktügü icin (iki model ayni anda GPU'dayken) top_k=2 yapmistik.
             # Embedding CPU'da olsa da, Chat modelinin Context (İçerik) sınırı ve GPU KV Cache'i
             # 6 metin + sohbet geçmişini aynı anda kaldırmayıp çökebiliyor (OOM). 
-            # Bu yüzden top_k'yi dengelemek adına 3'e düşürüyoruz.
-            matches = get_relevant_context(search_query, top_k=3)
+            # Bu yüzden top_k'yi dengelemek adına 2'ye düşürüyoruz. (Eğer çok yavaşlarsa VRAM taşıyor demektir)
+            matches = get_relevant_context(search_query, top_k=2)
             
             # Bulunan metinleri birleştir
             if matches:
