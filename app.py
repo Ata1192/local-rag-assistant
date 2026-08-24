@@ -461,6 +461,19 @@ with st.sidebar:
     if selected_model != st.session_state.chat_model_name:
         st.session_state.chat_model_name = selected_model
         st.rerun()
+        
+    if st.button("🔄 Motoru Yeniden Başlat (Reset)", help="Yapay zeka yanıt vermekte takılırsa (veya çökerse) arka plandaki motoru sıfırlayıp hafızayı boşaltır."):
+        with st.spinner("Motor sıfırlanıyor, lütfen bekleyin..."):
+            try:
+                manager = FoundryLocalManager.instance
+                # Yüklü tüm modelleri hafızadan at
+                for m_id, model_obj in manager.catalog.models.items():
+                    if model_obj.is_loaded:
+                        model_obj.unload()
+            except Exception:
+                pass
+        st.success("Motor başarıyla sıfırlandı! Tekrar soru sorabilirsiniz.")
+        st.rerun()
                     
     st.markdown("---")
     st.header("Dışa Aktar")
