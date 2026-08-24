@@ -549,7 +549,7 @@ CRITICAL RULES:
 1. NEVER use outside knowledge. Do not invent answers.
 2. If the exact answer is not found in the CONTEXT, you MUST reply with exactly: "Bu konuda bilgi tabanımda bir bilgi bulunmuyor."
 3. Answer in the same language as the user's question (e.g. if the user asks in Turkish, answer in Turkish).
-4. Always append the source file name at the end of your answer if you used it: [Kaynak: filename].
+4. ONLY append the source file name [Kaynak: filename] IF you actually found the answer. DO NOT append it if you are replying with the "bilgi bulunmuyor" fallback.
 
 EXAMPLE:
 Context: The sky is blue. [Kaynak: sky.txt]
@@ -583,12 +583,17 @@ Assistant: Bu konuda bilgi tabanımda bir bilgi bulunmuyor.
         # Adım D: Cevabı Streamlit'e akıtarak (streaming) yazdır
         # st.write_stream, metin geldikçe ekrana yazar
         def generate_response():
-            for chunk in chat_client.complete_streaming_chat(chat_payload):
-                if not chunk.choices: # Stream bitiş sinyali gelirse atla
-                    continue
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content # yield = parçayı anında ekrana yolla
+            try:
+                for chunk in chat_client.complete_streaming_chat(chat_payload):
+                    if not chunk.choices: # Stream bitiş sinyali gelirse atla
+                        continue
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content # yield = parçayı anında ekrana yolla
+            except Exception as e:
+                # Kullanıcı yayını keserse (Stop) hatayı yut
+                if "cancel" not in str(e).lower():
+                    yield f"\n\n[Sistem Hatası: {str(e)}]"
                     
         # Cevabı ekranda göster
         status.update(label="Yanıt üretiliyor...", state="running")
