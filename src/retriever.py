@@ -109,7 +109,10 @@ def search_database(query_vector, text_query, top_k=2):
                 
         if clean_words:
             match_query = " OR ".join(clean_words)
-            print(f"[DEBUG] FTS Query: {match_query}")
+            try:
+                print(f"[DEBUG] FTS Query: {match_query}")
+            except UnicodeEncodeError:
+                pass # Windows CMD'de Türkçe karakter (ı, ğ, ş) basarken çökmesini engelle
             try:
                 cursor.execute("SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY rank", (match_query,))
                 fts_rows = cursor.fetchall()
