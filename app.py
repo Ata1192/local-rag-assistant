@@ -68,7 +68,6 @@ def init_models(embedding_model_name: str, chat_model_name: str):
     # Eger VRAM yetmezse FoundryLocalManager kendisi fallback yapabilir.
             
     embedding_model.download()
-    embedding_model.download()
     # YENI MIMARI: Embedding modelini burada YUKLEMIYORUZ! (VRAM acmak icin)
     # Sadece indirildiginden (cache'de oldugundan) emin oluyoruz.
                 
@@ -180,39 +179,35 @@ def save_message(chat_id, role, content, sources=None):
     conn.close()
 
 def update_chat_title(chat_id, new_title):
-    conn = sqlite3.connect("knowledge_base.db")
-    conn.execute("UPDATE chats SET title = ? WHERE id = ?", (new_title, chat_id))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect("knowledge_base.db") as conn:
+        conn.execute("UPDATE chats SET title = ? WHERE id = ?", (new_title, chat_id))
+        conn.commit()
 
 def delete_chat(chat_id):
-    conn = sqlite3.connect("knowledge_base.db")
-    conn.execute("DELETE FROM chats WHERE id = ?", (chat_id,))
-    conn.execute("DELETE FROM chat_history WHERE chat_id = ?", (chat_id,))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect("knowledge_base.db") as conn:
+        conn.execute("DELETE FROM chats WHERE id = ?", (chat_id,))
+        conn.execute("DELETE FROM chat_history WHERE chat_id = ?", (chat_id,))
+        conn.commit()
 
 def get_all_documents():
-    conn = sqlite3.connect("knowledge_base.db")
-    cursor = conn.cursor()
+    docs = []
     try:
-        cursor.execute("SELECT DISTINCT source_file FROM chunks")
-        rows = cursor.fetchall()
-        docs = [r[0] for r in rows]
+        with sqlite3.connect("knowledge_base.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT DISTINCT source_file FROM chunks")
+            docs = [r[0] for r in cursor.fetchall()]
     except sqlite3.OperationalError:
-        docs = []
-    conn.close()
+        pass
     return docs
 
 def delete_document(filename):
     # Veritabanından sil
-    conn = sqlite3.connect("knowledge_base.db")
     try:
-        conn.execute("DELETE FROM chunks WHERE source_file = ?", (filename,))
-        conn.commit()
+        with sqlite3.connect("knowledge_base.db") as conn:
+            conn.execute("DELETE FROM chunks WHERE source_file = ?", (filename,))
+            conn.commit()
     except sqlite3.OperationalError:
         pass
-    conn.close()
     
     # Fiziksel dosyayı sil
     file_path = os.path.join("docs", filename)
@@ -318,21 +313,22 @@ if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
 # F5 atıldığında veya sayfa yüklendiğinde `docs/` klasöründeki YENİ dosyaları otomatik tara ve ekle
-for filename in os.listdir("docs"):
-    if filename.endswith(('.txt', '.md', '.pdf', '.docx', '.csv')) and filename not in st.session_state.ingested_files:
-        with st.spinner(f"Yeni dosya tespit edildi, otomatik ekleniyor: {filename}"):
-            # HIZLANDIRMA (YONTEM 1): VRAM'i devasa partiler (batch) icin bosalt!
-            manager = FoundryLocalManager.instance
-            chat_model = manager.catalog.get_model(st.session_state.chat_model_name)
-            try: chat_model.unload()
-            except Exception: pass
-            
-            chunks_added = ingest_file(os.path.join("docs", filename), embedding_client=None)
+new_files_to_ingest = [f for f in os.listdir("docs") if f.endswith(('.txt', '.md', '.pdf', '.docx', '.csv')) and f not in st.session_state.ingested_files]
+
+if new_files_to_ingest:
+    with st.spinner(f"{len(new_files_to_ingest)} yeni dosya tespit edildi, topluca ekleniyor..."):
+        # HIZLANDIRMA: Döngü dışına çıkarıldı! Model bir kere silinir, tüm dosyalar işlenir, model geri yüklenir.
+        manager = FoundryLocalManager.instance
+        chat_model = manager.catalog.get_model(st.session_state.chat_model_name)
+        try: chat_model.unload()
+        except Exception: pass
+        
+        for filename in new_files_to_ingest:
+            ingest_file(os.path.join("docs", filename), embedding_client=None)
             st.session_state.ingested_files.add(filename)
             
-            # CHAT MODELINI GERI YUKLE
-            try: chat_model.load()
-            except Exception: pass
+        try: chat_model.load()
+        except Exception: pass
 
 with st.sidebar:
     st.markdown("---")
@@ -603,6 +599,7 @@ Assistant: [BİLGİ YOK]
         # Adım D: Cevabı Streamlit'e akıtarak (streaming) yazdır
         # st.write_stream, metin geldikçe ekrana yazar
         def generate_response():
+            finished_normally = False
             try:
                 for chunk in chat_client.complete_streaming_chat(chat_payload):
                     if not chunk.choices: # Stream bitiş sinyali gelirse atla
@@ -610,10 +607,23 @@ Assistant: [BİLGİ YOK]
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content # yield = parçayı anında ekrana yolla
+                finished_normally = True
             except Exception as e:
                 # Kullanıcı yayını keserse (Stop) hatayı yut
                 if "cancel" not in str(e).lower():
                     yield f"\n\n[Sistem Hatası: {str(e)}]"
+            finally:
+                # Eger uretim normal sekilde bitmediyse (Kullanici sayfayi kapatti veya F5 attiysa)
+                if not finished_normally:
+                    # Zombi (olumsuz) C++ islemini hafizadan zorla temizle
+                    try:
+                        manager = FoundryLocalManager.instance
+                        c_model = manager.catalog.get_model(st.session_state.chat_model_name)
+                        if c_model.is_loaded:
+                            c_model.unload() # Zombiyi oldurur
+                            c_model.load()   # Temiz baslangic icin geri yukler
+                    except Exception:
+                        pass
                     
         # Cevabı ekranda göster
         status.update(label="Yanıt üretiliyor...", state="running")
