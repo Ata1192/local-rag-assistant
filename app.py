@@ -459,6 +459,15 @@ with st.sidebar:
     )
     
     if selected_model != st.session_state.chat_model_name:
+        # Önce eski modeli RAM/VRAM'den temizle (OOM yememek için)
+        try:
+            manager = FoundryLocalManager.instance
+            old_model = manager.catalog.get_model(st.session_state.chat_model_name)
+            if old_model.is_loaded:
+                old_model.unload()
+        except Exception:
+            pass
+            
         st.session_state.chat_model_name = selected_model
         st.rerun()
         
