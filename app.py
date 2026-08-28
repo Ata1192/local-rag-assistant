@@ -599,7 +599,6 @@ Assistant: [BİLGİ YOK]
         # Adım D: Cevabı Streamlit'e akıtarak (streaming) yazdır
         # st.write_stream, metin geldikçe ekrana yazar
         def generate_response():
-            finished_normally = False
             try:
                 for chunk in chat_client.complete_streaming_chat(chat_payload):
                     if not chunk.choices: # Stream bitiş sinyali gelirse atla
@@ -607,23 +606,10 @@ Assistant: [BİLGİ YOK]
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content # yield = parçayı anında ekrana yolla
-                finished_normally = True
             except Exception as e:
                 # Kullanıcı yayını keserse (Stop) hatayı yut
                 if "cancel" not in str(e).lower():
                     yield f"\n\n[Sistem Hatası: {str(e)}]"
-            finally:
-                # Eger uretim normal sekilde bitmediyse (Kullanici sayfayi kapatti veya F5 attiysa)
-                if not finished_normally:
-                    # Zombi (olumsuz) C++ islemini hafizadan zorla temizle
-                    try:
-                        manager = FoundryLocalManager.instance
-                        c_model = manager.catalog.get_model(st.session_state.chat_model_name)
-                        if c_model.is_loaded:
-                            c_model.unload() # Zombiyi oldurur
-                            c_model.load()   # Temiz baslangic icin geri yukler
-                    except Exception:
-                        pass
                     
         # Cevabı ekranda göster
         status.update(label="Yanıt üretiliyor...", state="running")
