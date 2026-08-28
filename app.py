@@ -591,6 +591,15 @@ Assistant: [BİLGİ YOK]
         # Küçük yerel modeller (Qwen 1.5B vb.) "system" rolünü desteklemediği için görmezden gelebilir.
         combined_prompt = f"{system_prompt}\n\n{user_prompt_with_history}"
 
+        # [RAM OPTIMIZASYONU] Ministral 3B gibi ağır modeller için Embedding modelini hafızadan atıyoruz.
+        try:
+            manager = FoundryLocalManager.instance
+            emb_model = manager.catalog.get_model("qwen3-embedding-0.6b")
+            if emb_model.is_loaded:
+                emb_model.unload()
+        except Exception:
+            pass
+
         # Adım C: Mesaj paketini hazırlama (Sadece User)
         chat_payload = [
             {"role": "user", "content": combined_prompt}
@@ -607,9 +616,7 @@ Assistant: [BİLGİ YOK]
                     if content:
                         yield content # yield = parçayı anında ekrana yolla
             except Exception as e:
-                # Kullanıcı yayını keserse (Stop) hatayı yut
-                if "cancel" not in str(e).lower():
-                    yield f"\n\n[Sistem Hatası: {str(e)}]"
+                yield f"\n\n[Sistem Hatası: {str(e)}]"
                     
         # Cevabı ekranda göster
         status.update(label="Yanıt üretiliyor...", state="running")
