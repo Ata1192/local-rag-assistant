@@ -551,7 +551,7 @@ if user_query and user_query.strip():
             # Embedding CPU'da olsa da, Chat modelinin Context (İçerik) sınırı ve GPU KV Cache'i
             # 6 metin + sohbet geçmişini aynı anda kaldırmayıp çökebiliyor (OOM). 
             # Bu yüzden top_k'yi dengelemek adına 2'ye düşürüyoruz. (Eğer çok yavaşlarsa VRAM taşıyor demektir)
-            matches = get_relevant_context(search_query, top_k=2)
+            matches = get_relevant_context(search_query, top_k=5)
             
             # Bulunan metinleri birleştir
             if matches:
@@ -560,17 +560,14 @@ if user_query and user_query.strip():
                 context_text = "Veritabanında ilgili hiçbir bilgi bulunamadı."
 
         # Adım B: Modele ne yapacağını söyleyen System Prompt oluştur
-        system_prompt = f"""You are a strict RAG extraction assistant. You MUST answer the user's question using ONLY the provided CONTEXT.
+        system_prompt = f"""You are a professional Medical Diagnostic Assistant. You MUST answer the user's question using ONLY the provided CONTEXT.
 
 CRITICAL RULES:
-1. NEVER use outside knowledge. Do not invent answers.
-2. If the exact answer is not found in the CONTEXT, you MUST reply with exactly: "[BİLGİ YOK]"
-3. Answer in the same language as the user's question (e.g. if the user asks in Turkish, answer in Turkish).
-
-EXAMPLE:
-Context: The sky is blue.
-User: What color is the grass?
-Assistant: [BİLGİ YOK]
+1. The CONTEXT contains possible diseases and their symptoms in English. The user will describe their symptoms in Turkish.
+2. Compare the user's symptoms with the diseases in the CONTEXT. Find the closest matching diseases.
+3. If the symptoms partially match multiple diseases, list the most likely diseases and explain which symptoms matched.
+4. You MUST translate the English diseases and symptoms into Turkish when answering. Answer entirely in clear, professional Turkish.
+5. NEVER invent diseases that are not in the CONTEXT.
 
 --- CONTEXT START ---
 {context_text}
@@ -585,7 +582,7 @@ Assistant: [BİLGİ YOK]
                 safe_content = msg['content'][:400] + "...(truncated)" if len(msg['content']) > 400 else msg['content']
                 user_prompt_with_history += f"{role}: {safe_content}\n"
         
-        user_prompt_with_history += f"\n--- NEW QUESTION ---\nUser: {user_query}\n\nCRITICAL REMINDER: You MUST NOT use outside knowledge or general definitions. If the exact answer is not in the CONTEXT above, output exactly: '[BİLGİ YOK]'"""
+        user_prompt_with_history += f"\n--- NEW QUESTION ---\nUser: {user_query}\n\nCRITICAL REMINDER: Compare my symptoms to the CONTEXT and give me the most likely diagnosis in Turkish. You do NOT need a 100% perfect match, partial matches are fine!"""
 
         # [RAM OPTIMIZASYONU] Ministral 3B gibi ağır modeller için Embedding modelini hafızadan atıyoruz.
         try:

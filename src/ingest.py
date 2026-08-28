@@ -120,15 +120,46 @@ def extract_text_from_docx(filepath):
         return ""
 
 def extract_text_from_csv(filepath):
+    """
+    CSV dosyasını okur. Eğer Medical Dataset (symptoms to diseases) ise
+    veriyi hastalık bazında gruplayarak optimize eder. Değilse standart okur.
+    """
     text = ""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            if not reader.fieldnames:
-                return ""
-            for row in reader:
-                row_str = " | ".join([f"{k}: {v}" for k, v in row.items() if v])
-                text += row_str + "\n\n"
+        if "final_symptoms_to_disease" in os.path.basename(filepath).lower():
+            import pandas as pd
+            df = pd.read_csv(filepath)
+            
+            disease_dict = {}
+            for _, row in df.iterrows():
+                disease = str(row.get('diseases', '')).strip()
+                symptoms = str(row.get('symptom_text', '')).strip()
+                
+                if not disease or disease.lower() == 'nan':
+                    continue
+                    
+                if disease not in disease_dict:
+                    disease_dict[disease] = set()
+                    
+                for symptom in symptoms.split(','):
+                    s = symptom.strip().lower()
+                    if s:
+                        disease_dict[disease].add(s)
+            
+            # Hastalıkları metin haline getir
+            for disease, symptoms_set in disease_dict.items():
+                symptoms_str = ", ".join(sorted(list(symptoms_set)))
+                doc_text = f"Hastalık (Disease): {disease.title()}\nOlası Belirtiler (Symptoms): {symptoms_str}\n\n"
+                text += doc_text
+                
+        else:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                if not reader.fieldnames:
+                    return ""
+                for row in reader:
+                    row_str = " | ".join([f"{k}: {v}" for k, v in row.items() if v])
+                    text += row_str + "\n\n"
     except Exception as e:
         print(f"CSV okuma hatasi ({filepath}): {e}")
     return text
