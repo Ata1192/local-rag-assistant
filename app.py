@@ -587,10 +587,6 @@ Assistant: [BİLGİ YOK]
         
         user_prompt_with_history += f"\n--- NEW QUESTION ---\nUser: {user_query}\n\nCRITICAL REMINDER: You MUST NOT use outside knowledge or general definitions. If the exact answer is not in the CONTEXT above, output exactly: '[BİLGİ YOK]'"""
 
-        # Tüm kuralları ve bağlamı TEK BİR KULLANICI MESAJI (user role) olarak birleştir.
-        # Küçük yerel modeller (Qwen 1.5B vb.) "system" rolünü desteklemediği için görmezden gelebilir.
-        combined_prompt = f"{system_prompt}\n\n{user_prompt_with_history}"
-
         # [RAM OPTIMIZASYONU] Ministral 3B gibi ağır modeller için Embedding modelini hafızadan atıyoruz.
         try:
             manager = FoundryLocalManager.instance
@@ -600,10 +596,13 @@ Assistant: [BİLGİ YOK]
         except Exception:
             pass
 
-        # Adım C: Mesaj paketini hazırlama (Sadece User)
+        # Adım C: Mesaj paketini hazırlama
         chat_payload = [
-            {"role": "user", "content": combined_prompt}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt_with_history}
         ]
+
+        # Yanit uretimini baslat
         
         # Adım D: Cevabı Streamlit'e akıtarak (streaming) yazdır
         # st.write_stream, metin geldikçe ekrana yazar
