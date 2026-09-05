@@ -1,53 +1,53 @@
 # Local RAG Assistant
 
-Bu proje, tamamen yerel (bilgisayarınızda) internet bağlantısına ihtiyaç duymadan çalışan, kendi belgelerinizi okuyup anlayabilen ve size profesyonel cevaplar verebilen bir RAG (Retrieval-Augmented Generation) asistanıdır. Son yapılan güncellemelerle birlikte proje, geniş çaplı veri setlerini (örnek: Hastalık-Semptom veritabanları) işleyebilen bir "Medikal Teşhis Asistanı" kapasitesine ulaşmıştır.
+This project is a 100% offline, local Retrieval-Augmented Generation (RAG) assistant that can read, understand, and answer questions based on your own documents without requiring any internet connection. With recent updates, the project has been upgraded to a "Medical Diagnostic Assistant" capable of processing large-scale datasets (e.g., Disease-Symptom databases) and providing professional medical insights based strictly on the provided data.
 
-Güvenlik veya gizlilik kaygısı olan şirketler, kurumlar veya bireyler için verilerin dışarı çıkmadığı güvenli bir yapay zeka arama motorudur.
+It serves as a highly secure AI search engine for companies, institutions, or individuals with strict data privacy concerns, ensuring that no data ever leaves the local environment.
 
-## Ozellikler
+## Features
 
-- %100 Yerel Calisir: Hiçbir veriniz internete (OpenAI, Google vs.) gönderilmez. Tüm işlemler bilgisayarınızda gerçekleşir.
-- Arayuz Uzerinden Dosya Yukleme ve Yonetim: Belgeleri manuel olarak klasöre atmak yerine doğrudan Streamlit arayüzündeki sol menüyü kullanarak yükleyebilir ve istemediğiniz belgeleri tek tıkla silebilirsiniz (.txt, .md, .pdf, .docx, .csv desteklenir).
-- Obsidian Entegrasyonu (Graph View): Veritabanındaki tüm belgeleri, chunk'ları ve aralarındaki ilişkileri Obsidian üzerinden görselleştirerek harita (Graph) görünümünde inceleyebilirsiniz. Uygulama arayüzünden tek tıkla Obsidian Vault oluşturulup açılabilir.
-- Dinamik RAM/VRAM Yonetimi: Sistem belleğini korumak amacıyla RAG arama süreci (Embedding) ve Cevap üretme süreci (LLM) arasında modeller bellekten dinamik olarak yüklenip silinir (Unload). Bu sayede düşük donanımlı sistemlerde (Örn: 8GB RAM) bile ağır modeller sorunsuz çalışır.
-- Akilli Alinti (Citation) ve Coklu Format Destegi: Verdiği cevapları sizin belgelerinizden alır ve hangi belgeden okuduğunu kaynak gösterir. Karmaşık CSV veri setlerini akıllı gruplama yöntemleriyle optimize ederek okuyabilir.
-- Halusinasyon Korumasi: Eğer sorunuzun cevabı belgelerde yoksa, uydurmak yerine kesin bir dille bilgiyi bulamadığını belirtir (Medical asistan için kısmi eşleşmeleri de mantıklı çerçevede sunacak şekilde yapılandırılmıştır).
+- 100% Local Execution: None of your data is sent to the internet (OpenAI, Google, etc.). All processing happens entirely on your local machine.
+- UI-Based File Management: Instead of manually placing documents in folders, you can upload documents directly through the Streamlit web interface and delete unwanted files with a single click. Supported formats include .txt, .md, .pdf, .docx, and .csv.
+- Obsidian Integration (Graph View): Visualize all documents, chunks, and their relationships in a 3D Graph view using Obsidian. You can generate and open an Obsidian Vault directly from the application interface with one click.
+- Dynamic RAM/VRAM Management: To preserve system memory, models are dynamically loaded and unloaded between the RAG retrieval process (Embedding) and the answer generation process (LLM). This ensures that heavy models run smoothly even on low-end systems (e.g., 8GB RAM).
+- Smart Citations & Multi-Format Support: The assistant cites the exact source document it used to generate the answer. It is also highly capable of parsing complex CSV datasets using smart grouping algorithms.
+- Anti-Hallucination Measures: If the answer to your question is not found in the provided documents, the system will explicitly state that it does not know, rather than making up information. (For the medical assistant use case, it is configured to logically present partial matches rather than failing silently).
 
-## Kurulum Adimlari
+## Installation
 
-**1. Gereksinimler**
-- Python 3.10 veya üzeri
-- `pip` paket yöneticisi
-- Foundry Local SDK (Yerel model yönetimi için)
+**1. Prerequisites**
+- Python 3.10 or higher
+- `pip` package manager
+- Foundry Local SDK (for managing local models)
 
-**2. Kurulum**
-Proje dizininde sanal ortam oluşturup gerekli kütüphaneleri yükleyin:
+**2. Setup**
+Create a virtual environment in the project directory and install the required libraries:
 ```bash
 python -m venv venv
 venv\Scripts\activate
 pip install streamlit foundry-local-sdk pandas PyPDF2 python-docx
 ```
 
-## Nasil Kullanilir?
+## How to Use
 
-Projeyi tek tıkla başlatmak için ana dizindeki `Start_RAG_Assistant.bat` dosyasını çalıştırabilirsiniz. Alternatif olarak terminalden şu komutu girebilirsiniz:
+To launch the project with a single click, run the `Start_RAG_Assistant.bat` file in the main directory. Alternatively, you can use the following command in the terminal:
 
 ```bash
 streamlit run app.py
 ```
 
-### Belgeleri Yukleme ve Yonetme
-1. Tarayıcıda açılan arayüzde, sol menüde bulunan "Belge Yükle" alanını kullanarak bilgisayarınızdaki verileri sisteme aktarabilirsiniz.
-2. Yüklenen belgeler arka planda otomatik olarak analiz edilir, parçalara (chunk) bölünür, vektörlere çevrilir ve `knowledge_base.db` isimli SQLite veritabanına kaydedilir.
-3. Yine sol menüdeki "Yüklü Belgeleri Yönet" kısmından sistemde kayıtlı dosyaları görebilir, yanlarındaki çarpı ikonuna basarak veritabanından tamamen silebilirsiniz.
+### Uploading and Managing Documents
+1. In the browser interface, use the "Upload Document" section in the left sidebar to transfer data from your computer to the system.
+2. Uploaded documents are automatically analyzed in the background, split into chunks, converted into vectors, and saved to a local SQLite database named `knowledge_base.db`.
+3. You can view all currently registered files under the "Manage Uploaded Documents" section in the sidebar and delete them from the database by clicking the "x" icon next to them.
 
-### Obsidian ile Gorsellestirme
-1. Sol menüde bulunan "Obsidian Vault Oluştur" butonuna tıklayın.
-2. İşlem tamamlandığında "Obsidian'de Görüntüle" butonu belirecektir. Bu butona basarak veritabanınızın Graph (Harita) görünümünü Obsidian uygulaması üzerinde 3 boyutlu olarak inceleyebilirsiniz.
+### Visualizing with Obsidian
+1. Click the "Create Obsidian Vault" button located in the left sidebar.
+2. Once the process is complete, a "View in Obsidian" button will appear. By clicking this, you can explore the 3D Graph representation of your database directly within the Obsidian application.
 
-## Proje Yapisi
-- `docs/`: Arayüzden yüklenen belgelerin geçici veya kalıcı olarak saklandığı klasör.
-- `src/ingest.py`: Belgeleri (PDF, Word, CSV, TXT) okuyup vektör veritabanına akıllı algoritmalarla kaydeden script (örnek: CSV içerisindeki yüz binlerce satırı benzersiz gruplara ayırarak optimize eder).
-- `src/retriever.py`: Sorduğunuz soruya en yakın belgeleri vektör ve metin tabanlı hibrid arama (FTS5 + Cosine Similarity) ile bulan motor.
-- `app.py`: Streamlit ile yazılmış modern, kullanıcı dostu ana sohbet arayüzü.
-- `knowledge_base.db`: Tüm verilerinizin ve sohbet geçmişinizin güvenle tutulduğu yerel veritabanı.
+## Project Structure
+- `docs/`: A folder where documents uploaded via the UI are temporarily or permanently stored.
+- `src/ingest.py`: The script responsible for reading documents (PDF, Word, CSV, TXT) and saving them to the vector database using smart algorithms (e.g., optimizing hundreds of thousands of CSV rows into unique groups).
+- `src/retriever.py`: The engine that finds the closest matching documents to your query using hybrid search (FTS5 + Cosine Similarity).
+- `app.py`: The modern, user-friendly main chat interface built with Streamlit.
+- `knowledge_base.db`: The local database where all your data and chat history are securely stored.
